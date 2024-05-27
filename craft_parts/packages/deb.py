@@ -1,6 +1,6 @@
 # -*- Mode:Python; indent-tabs-mode:nil; tab-width:4 -*-
 #
-# Copyright 2015-2023 Canonical Ltd.
+# Copyright 2015-2024 Canonical Ltd.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@ from io import StringIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
-from craft_parts.utils import deb_utils, file_utils, os_utils
+from craft_parts.utils import deb_utils, file_utils, os_utils, process_utils
 
 from . import errors
 from .base import BaseRepository, get_pkg_name_parts, mark_origin_stage_package
@@ -515,6 +515,8 @@ class Ubuntu(BaseRepository):
         *,
         list_only: bool = False,
         refresh_package_cache: bool = True,
+        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Install packages on the host system."""
         if not package_names:
@@ -538,7 +540,11 @@ class Ubuntu(BaseRepository):
             if refresh_package_cache and install_required:
                 cls.refresh_packages_list()
             if install_required:
-                cls._install_packages(package_names)
+                cls._install_packages(
+                    package_names,
+                    stdout=stdout,
+                    stderr=stderr,
+                )
             else:
                 logger.debug(
                     "Requested build-packages already installed: %s", package_names
@@ -552,7 +558,13 @@ class Ubuntu(BaseRepository):
         )
 
     @classmethod
-    def _install_packages(cls, package_names: List[str]) -> None:
+    def _install_packages(
+        cls,
+        package_names: List[str],
+        *,
+        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
+    ) -> None:
         logger.debug("Installing packages: %s", " ".join(package_names))
         env = os.environ.copy()
         env.update(
@@ -576,7 +588,13 @@ class Ubuntu(BaseRepository):
         # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=555632
 
         try:
-            process_run(apt_command + package_names, env=env, stdin=subprocess.DEVNULL)
+            process_run(
+                apt_command + package_names,
+                env=env,
+                stdin=subprocess.DEVNULL,
+                stdout=stdout,
+                stderr=stderr,
+            )
         except subprocess.CalledProcessError as err:
             raise errors.BuildPackagesNotInstalled(packages=package_names) from err
 
@@ -662,7 +680,7 @@ class Ubuntu(BaseRepository):
                 for pkg_name, pkg_version, dl_path in apt_cache.fetch_archives(
                     deb_cache_dir
                 ):
-                    logger.debug("Extracting stage package: %s", pkg_name)
+                    logger.info("Extracting stage package: %s", pkg_name)
                     installed.add(f"{pkg_name}={pkg_version}")
                     file_utils.link_or_copy(
                         str(dl_path), str(stage_packages_path / dl_path.name)
@@ -782,7 +800,23 @@ def get_cache_dirs(cache_dir: Path) -> Tuple[Path, Path]:
     return (stage_cache_dir, deb_cache_dir)
 
 
-def process_run(command: List[str], **kwargs: Any) -> None:
-    """Run a command and log its output."""
+def process_run(
+    command: List[str],
+    *,
+    stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+    stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
+    **kwargs: Any,
+) -> None:
+    """Run a command and log its output.
+
+    :param stdout: Stream for subprocess output redirection.
+    :param stderr: Stream for subprocess error redirection.
+    """
     # Pass logger so messages can be logged as originating from this package.
-    os_utils.process_run(command, logger.debug, **kwargs)
+    os_utils.process_run(
+        command,
+        logger.debug,
+        stdout=stdout,
+        stderr=stderr,
+        **kwargs,
+    )
