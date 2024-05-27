@@ -91,7 +91,10 @@ class Executor:
 
         This method is called before executing lifecycle actions.
         """
-        self._install_build_packages()
+        self._install_build_packages(
+            stdout=stdout,
+            stderr=stderr,
+        )
         self._install_build_snaps()
 
         self._verify_plugin_environment()
@@ -322,7 +325,10 @@ class ExecutionContext:
         self._stderr = stderr
 
     def __enter__(self) -> "ExecutionContext":
-        self._executor.prologue()
+        self._executor.prologue(
+            stdout=self._stdout,
+            stderr=self._stderr,
+        )
         return self
 
     def __exit__(self, *exc: object) -> None:

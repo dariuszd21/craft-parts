@@ -240,9 +240,16 @@ class LifecycleManager:
         """Reload the ephemeral state from disk."""
         self._sequencer.reload_state()
 
-    def action_executor(self) -> executor.ExecutionContext:
+    def action_executor(
+        self,
+        *,
+        stdout: Optional["Stream"] = None,
+        stderr: Optional["Stream"] = None,
+    ) -> executor.ExecutionContext:
         """Return a context manager for action execution."""
-        return executor.ExecutionContext(executor=self._executor)
+        return executor.ExecutionContext(
+            executor=self._executor, stdout=stdout, stderr=stderr
+        )
 
     def get_pull_assets(self, *, part_name: str) -> Optional[Dict[str, Any]]:
         """Return the part's pull state assets.

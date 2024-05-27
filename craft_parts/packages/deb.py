@@ -545,9 +545,16 @@ class Ubuntu(BaseRepository):
 
         if not list_only:
             if refresh_package_cache and install_required:
-                cls.refresh_packages_list()
+                cls.refresh_packages_list(
+                    stdout=stdout,
+                    stderr=stderr,
+                )
             if install_required:
-                cls._install_packages(package_names)
+                cls._install_packages(
+                    package_names,
+                    stdout=stdout,
+                    stderr=stderr,
+                )
             else:
                 logger.debug(
                     "Requested build-packages already installed: %s", package_names
@@ -595,6 +602,8 @@ class Ubuntu(BaseRepository):
                 apt_command + package_names,
                 env=env,
                 stdin=subprocess.DEVNULL,
+                stdout=stdout,
+                stderr=stderr,
             )
         except subprocess.CalledProcessError as err:
             raise errors.BuildPackagesNotInstalled(packages=package_names) from err
