@@ -189,6 +189,7 @@ class PartHandler:
         _remove(self._part.part_src_dir)
         self._make_dirs()
 
+        # TODO (DD): Here is fetch step to be considered streaming
         fetched_packages = self._fetch_stage_packages(step_info=step_info)
         fetched_snaps = self._fetch_stage_snaps()
         self._fetch_overlay_packages()

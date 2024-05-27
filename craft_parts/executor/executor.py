@@ -81,7 +81,12 @@ class Executor:
             base_layer_dir=base_layer_dir,
         )
 
-    def prologue(self) -> None:
+    def prologue(
+        self,
+        *,
+        stdout: Stream = None,
+        stderr: Stream = None,
+    ) -> None:
         """Prepare the execution environment.
 
         This method is called before executing lifecycle actions.
@@ -234,7 +239,12 @@ class Executor:
 
         return handler
 
-    def _install_build_packages(self) -> None:
+    def _install_build_packages(
+        self,
+        *,
+        stdout: Stream = None,
+        stderr: Stream = None,
+    ) -> None:
         for part in self._part_list:
             self._create_part_handler(part)
 
@@ -246,7 +256,11 @@ class Executor:
             build_packages.update(self._extra_build_packages)
 
         logger.info("Installing build-packages")
-        packages.Repository.install_packages(sorted(build_packages))
+        packages.Repository.install_packages(
+            sorted(build_packages),
+            stdout=stdout,
+            stderr=stderr,
+        )
 
     def _install_build_snaps(self) -> None:
         build_snaps = set()
@@ -300,8 +314,12 @@ class ExecutionContext:
         self,
         *,
         executor: Executor,
+        stdout: Optional[Stream] = None,
+        stderr: Optional[Stream] = None,
     ) -> None:
         self._executor = executor
+        self._stdout = stdout
+        self._stderr = stderr
 
     def __enter__(self) -> "ExecutionContext":
         self._executor.prologue()

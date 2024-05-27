@@ -21,9 +21,12 @@ import contextlib
 import logging
 import os
 from pathlib import Path
-from typing import Any, List, Optional, Set, Tuple, Type
+from typing import Any, List, Optional, Set, Tuple, Type, TYPE_CHECKING
 
 from craft_parts import xattrs
+
+if TYPE_CHECKING:
+    from craft_parts.executor.step_handler import Stream
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +93,8 @@ class BaseRepository(abc.ABC):
         *,
         list_only: bool = False,
         refresh_package_cache: bool = True,
+        stdout: Optional["Stream"] = None,
+        stderr: Optional["Stream"] = None,
     ) -> List[str]:
         """Install packages on the host system.
 

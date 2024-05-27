@@ -405,6 +405,9 @@ class Ubuntu(BaseRepository):
     @functools.lru_cache(maxsize=1)
     def refresh_packages_list(  # pyright: ignore[reportIncompatibleMethodOverride]
         cls,
+        *,
+        stdout: Optional["Stream"] = None,
+        stderr: Optional["Stream"] = None,
     ) -> None:
         """Refresh the list of packages available in the repository."""
         # Return early when testing.
@@ -414,7 +417,11 @@ class Ubuntu(BaseRepository):
         try:
             cmd = ["apt-get", "update"]
             logger.debug("Executing: %s", cmd)
-            process_run(cmd)
+            process_run(
+                cmd,
+                stdout=stdout,
+                stderr=stderr,
+            )
         except subprocess.CalledProcessError as call_error:
             raise errors.PackageListRefreshError(
                 "failed to run apt update"
@@ -504,7 +511,7 @@ class Ubuntu(BaseRepository):
         ]
 
         try:
-            process_run(apt_command + package_names, env=env)
+            process_run(apt_command + package_names, env=env, stdout=None)
         except subprocess.CalledProcessError as err:
             raise errors.PackagesDownloadError(packages=package_names) from err
 
@@ -515,6 +522,8 @@ class Ubuntu(BaseRepository):
         *,
         list_only: bool = False,
         refresh_package_cache: bool = True,
+        stdout: Optional["Stream"] = None,
+        stderr: Optional["Stream"] = None,
     ) -> List[str]:
         """Install packages on the host system."""
         if not package_names:
@@ -552,7 +561,13 @@ class Ubuntu(BaseRepository):
         )
 
     @classmethod
-    def _install_packages(cls, package_names: List[str]) -> None:
+    def _install_packages(
+        cls,
+        package_names: List[str],
+        *,
+        stdout: Optional["Stream"] = None,
+        stderr: Optional["Stream"] = None,
+    ) -> None:
         logger.debug("Installing packages: %s", " ".join(package_names))
         env = os.environ.copy()
         env.update(
@@ -576,7 +591,11 @@ class Ubuntu(BaseRepository):
         # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=555632
 
         try:
-            process_run(apt_command + package_names, env=env, stdin=subprocess.DEVNULL)
+            process_run(
+                apt_command + package_names,
+                env=env,
+                stdin=subprocess.DEVNULL,
+            )
         except subprocess.CalledProcessError as err:
             raise errors.BuildPackagesNotInstalled(packages=package_names) from err
 
