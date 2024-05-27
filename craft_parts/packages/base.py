@@ -145,6 +145,8 @@ class BaseRepository(abc.ABC):
         base: str,
         arch: str,
         list_only: bool = False,
+        stdout: Optional["Stream"] = None,
+        stderr: Optional["Stream"] = None,
     ) -> List[str]:
         """Fetch stage packages to stage_packages_path.
 

@@ -190,7 +190,11 @@ class PartHandler:
         self._make_dirs()
 
         # TODO (DD): Here is fetch step to be considered streaming
-        fetched_packages = self._fetch_stage_packages(step_info=step_info)
+        fetched_packages = self._fetch_stage_packages(
+            step_info=step_info,
+            stdout=stdout,
+            stderr=stderr,
+        )
         fetched_snaps = self._fetch_stage_snaps()
         self._fetch_overlay_packages()
 
@@ -885,7 +889,13 @@ class PartHandler:
             overwrite=overwrite,
         )
 
-    def _fetch_stage_packages(self, *, step_info: StepInfo) -> Optional[List[str]]:
+    def _fetch_stage_packages(
+        self,
+        *,
+        step_info: StepInfo,
+        stdout: Optional[Stream] = None,
+        stderr: Optional[Stream] = None,
+    ) -> Optional[List[str]]:
         """Download stage packages to the part's package directory.
 
         :raises StagePackageNotFound: If a package is not available for download.
@@ -902,6 +912,8 @@ class PartHandler:
                 arch=step_info.host_arch,
                 base=step_info.base,
                 stage_packages_path=self._part.part_packages_dir,
+                stdout=stdout,
+                stderr=stderr,
             )
         except packages_errors.PackageNotFound as err:
             raise errors.StagePackageNotFound(

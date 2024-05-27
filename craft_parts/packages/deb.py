@@ -619,6 +619,8 @@ class Ubuntu(BaseRepository):
         arch: str,
         list_only: bool = False,
         packages_filters: Optional[Set[str]] = None,
+        stdout: Optional["Stream"] = None,
+        stderr: Optional["Stream"] = None,
     ) -> List[str]:
         """Fetch stage packages to stage_packages_path."""
         logger.debug("Requested stage-packages: %s", sorted(package_names))
@@ -639,6 +641,8 @@ class Ubuntu(BaseRepository):
             arch=arch,
             list_only=list_only,
             packages_filters=packages_filters,
+            stdout=stdout,
+            stderr=stderr,
         )
 
     @classmethod
@@ -653,6 +657,8 @@ class Ubuntu(BaseRepository):
         arch: str,
         list_only: bool = False,
         packages_filters: Optional[Set[str]] = None,
+        stdout: Optional["Stream"] = None,
+        stderr: Optional["Stream"] = None,
     ) -> List[str]:
         """Fetch .deb stage packages to stage_packages_path."""
         filtered_names = _get_filtered_stage_package_names(
@@ -673,7 +679,10 @@ class Ubuntu(BaseRepository):
         installed: Set[str] = set()
 
         # Update the package cache
-        cls.refresh_packages_list()
+        cls.refresh_packages_list(
+            stdout=stdout,
+            stderr=stderr,
+        )
 
         with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
             stage_cache=stage_cache_dir, stage_cache_arch=arch
