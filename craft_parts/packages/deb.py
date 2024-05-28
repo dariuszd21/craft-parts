@@ -25,7 +25,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from io import FileIO, StringIO
+from io import StringIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
@@ -686,7 +686,7 @@ class Ubuntu(BaseRepository):
 
         std_handler = None
         if stdout is not None:
-            std_handler = logging.StreamHandler(stream=FileIO(file=stdout, mode="w"))
+            std_handler = logging.StreamHandler(stream=open(stdout, mode="w"))
             logger.addHandler(std_handler)
 
         with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
