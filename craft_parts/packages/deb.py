@@ -18,6 +18,7 @@
 
 import fileinput
 import functools
+import io
 import logging
 import os
 import pathlib
@@ -686,8 +687,7 @@ class Ubuntu(BaseRepository):
 
         std_handler = None
         if stdout is not None:
-            std_handler = logging.StreamHandler()
-            std_handler.setStream(stdout)
+            std_handler = logging.StreamHandler(stream=io.TextIOWrapper(stdout))
             logger.addHandler(std_handler)
 
         with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
