@@ -25,9 +25,10 @@ import re
 import subprocess
 import sys
 import tempfile
+from contextlib import contextmanager
 from io import StringIO
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, TextIO, Tuple
 
 from craft_parts.utils import deb_utils, file_utils, os_utils
 
@@ -684,34 +685,27 @@ class Ubuntu(BaseRepository):
             stderr=stderr,
         )
 
-        std_handler = None
-        if stdout is not None:
-            std_handler = logging.StreamHandler(stream=open(stdout, mode="w"))
-            logger.addHandler(std_handler)
+        with attach_fd_streamhandler(stdout):
+            with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
+                stage_cache=stage_cache_dir, stage_cache_arch=arch
+            ) as apt_cache:
+                apt_cache.mark_packages(set(package_names))
+                apt_cache.unmark_packages(filtered_names)
 
-        with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
-            stage_cache=stage_cache_dir, stage_cache_arch=arch
-        ) as apt_cache:
-            apt_cache.mark_packages(set(package_names))
-            apt_cache.unmark_packages(filtered_names)
-
-            if list_only:
-                marked_packages = apt_cache.get_packages_marked_for_installation()
-                installed = {
-                    f"{name}={version}" for name, version in sorted(marked_packages)
-                }
-            else:
-                for pkg_name, pkg_version, dl_path in apt_cache.fetch_archives(
-                    deb_cache_dir
-                ):
-                    logger.debug("Extracting stage package: %s", pkg_name)
-                    installed.add(f"{pkg_name}={pkg_version}")
-                    file_utils.link_or_copy(
-                        str(dl_path), str(stage_packages_path / dl_path.name)
-                    )
-
-        if std_handler is not None:
-            logger.removeHandler(std_handler)
+                if list_only:
+                    marked_packages = apt_cache.get_packages_marked_for_installation()
+                    installed = {
+                        f"{name}={version}" for name, version in sorted(marked_packages)
+                    }
+                else:
+                    for pkg_name, pkg_version, dl_path in apt_cache.fetch_archives(
+                        deb_cache_dir
+                    ):
+                        logger.debug("Extracting stage package: %s", pkg_name)
+                        installed.add(f"{pkg_name}={pkg_version}")
+                        file_utils.link_or_copy(
+                            str(dl_path), str(stage_packages_path / dl_path.name)
+                        )
 
         return sorted(installed)
 
@@ -843,3 +837,26 @@ def process_run(
         stderr=stderr,
         **kwargs,
     )
+
+
+@contextmanager
+def attach_fd_streamhandler(stream: Optional["Stream"]) -> Callable:
+    """Attach temporary loghandler for given file descriptor."""
+    if stream is None:
+        yield
+        return
+
+    fd_stream_handler = None
+    try:
+        if isinstance(stream, TextIO):
+            fd_stream_handler = logging.StreamHandler(stream=stream)
+            logger.addHandler(fd_stream_handler)
+            yield
+        else:
+            with open(stream, mode="w") as wrapped_stream:
+                fd_stream_handler = logging.StreamHandler(stream=wrapped_stream)
+                logger.addHandler(fd_stream_handler)
+                yield
+    finally:
+        if fd_stream_handler is not None:
+            logger.removeHandler(fd_stream_handler)
