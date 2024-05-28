@@ -684,11 +684,10 @@ class Ubuntu(BaseRepository):
             stderr=stderr,
         )
 
-        std_handler = (
-            logging.StreamHandler(stream=stdout) if stdout is not None else None
-        )
-
-        if std_handler is not None:
+        std_handler = None
+        if stdout is not None:
+            std_handler = logging.StreamHandler()
+            std_handler.setStream(stdout)
             logger.addHandler(std_handler)
 
         with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
