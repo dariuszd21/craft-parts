@@ -684,6 +684,13 @@ class Ubuntu(BaseRepository):
             stderr=stderr,
         )
 
+        std_handler = (
+            logging.StreamHandler(stream=stdout) if stdout is not None else None
+        )
+
+        if std_handler is not None:
+            logger.addHandler(std_handler)
+
         with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
             stage_cache=stage_cache_dir, stage_cache_arch=arch
         ) as apt_cache:
@@ -704,6 +711,9 @@ class Ubuntu(BaseRepository):
                     file_utils.link_or_copy(
                         str(dl_path), str(stage_packages_path / dl_path.name)
                     )
+
+        if std_handler is not None:
+            logger.removeHandler(std_handler)
 
         return sorted(installed)
 
@@ -819,7 +829,19 @@ def get_cache_dirs(cache_dir: Path) -> Tuple[Path, Path]:
     return (stage_cache_dir, deb_cache_dir)
 
 
-def process_run(command: List[str], **kwargs: Any) -> None:
+def process_run(
+    command: List[str],
+    *,
+    stdout: Optional["Stream"] = subprocess.PIPE,
+    stderr: Optional["Stream"] = subprocess.STDOUT,
+    **kwargs: Any,
+) -> None:
     """Run a command and log its output."""
     # Pass logger so messages can be logged as originating from this package.
-    os_utils.process_run(command, logger.debug, **kwargs)
+    os_utils.process_run(
+        command,
+        logger.debug,
+        stdout=stdout,
+        stderr=stderr,
+        **kwargs,
+    )
