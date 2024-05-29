@@ -685,27 +685,30 @@ class Ubuntu(BaseRepository):
             stderr=stderr,
         )
 
-        with attach_fd_streamhandler(stdout):
-            with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
-                stage_cache=stage_cache_dir, stage_cache_arch=arch
-            ) as apt_cache:
-                apt_cache.mark_packages(set(package_names))
-                apt_cache.unmark_packages(filtered_names)
+        pkg_name = None
+        with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
+            stage_cache=stage_cache_dir, stage_cache_arch=arch
+        ) as apt_cache:
+            apt_cache.mark_packages(set(package_names))
+            apt_cache.unmark_packages(filtered_names)
 
-                if list_only:
-                    marked_packages = apt_cache.get_packages_marked_for_installation()
-                    installed = {
-                        f"{name}={version}" for name, version in sorted(marked_packages)
-                    }
-                else:
-                    for pkg_name, pkg_version, dl_path in apt_cache.fetch_archives(
-                        deb_cache_dir
-                    ):
-                        logger.debug("Extracting stage package: %s", pkg_name)
-                        installed.add(f"{pkg_name}={pkg_version}")
-                        file_utils.link_or_copy(
-                            str(dl_path), str(stage_packages_path / dl_path.name)
-                        )
+            if list_only:
+                marked_packages = apt_cache.get_packages_marked_for_installation()
+                installed = {
+                    f"{name}={version}" for name, version in sorted(marked_packages)
+                }
+            else:
+                for pkg_name, pkg_version, dl_path in apt_cache.fetch_archives(
+                    deb_cache_dir
+                ):
+                    logger.debug("Extracting stage package: %s", pkg_name)
+                    installed_package = f"{pkg_name}={pkg_version}"
+                    if stdout is not None:
+                        print(f"Extracting {installed_package}", file=stdout)
+                    installed.add(installed_package)
+                    file_utils.link_or_copy(
+                        str(dl_path), str(stage_packages_path / dl_path.name)
+                    )
 
         return sorted(installed)
 
@@ -853,7 +856,7 @@ def attach_fd_streamhandler(stream: Optional["Stream"]) -> Callable:
             logger.addHandler(fd_stream_handler)
             yield
         else:
-            with open(stream, mode="w") as wrapped_stream:
+            with open(stream, mode="a") as wrapped_stream:
                 fd_stream_handler = logging.StreamHandler(stream=wrapped_stream)
                 logger.addHandler(fd_stream_handler)
                 yield
