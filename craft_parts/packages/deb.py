@@ -701,9 +701,8 @@ class Ubuntu(BaseRepository):
                 for pkg_name, pkg_version, dl_path in apt_cache.fetch_archives(
                     deb_cache_dir
                 ):
-                    logger.debug("Extracting stage package: %s", pkg_name)
-                    installed_package = f"{pkg_name}={pkg_version}"
-                    installed.add(installed_package)
+                    logger.info("Extracting stage package: %s", pkg_name)
+                    installed.add(f"{pkg_name}={pkg_version}")
                     file_utils.link_or_copy(
                         str(dl_path), str(stage_packages_path / dl_path.name)
                     )
