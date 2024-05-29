@@ -326,12 +326,17 @@ class OsRelease:
 def process_run(
     command: List[str],
     log_func: Callable[[str], None],
+    *,
+    stdout: Optional["Stream"] = subprocess.PIPE,
+    stderr: Optional["Stream"] = subprocess.STDOUT,
     **kwargs: Any,
 ) -> None:
     """Run a command and handle its output."""
     with subprocess.Popen(
         command,
         universal_newlines=True,
+        stdout=stdout,
+        stderr=stderr,
         **kwargs,
     ) as proc:
         if not proc.stdout:

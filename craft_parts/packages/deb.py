@@ -703,13 +703,6 @@ class Ubuntu(BaseRepository):
                 ):
                     logger.debug("Extracting stage package: %s", pkg_name)
                     installed_package = f"{pkg_name}={pkg_version}"
-                    if stdout is not None and isinstance(stdout, int):
-                        with os.fdopen(stdout, mode="a") as stdout_fd:
-                            print(
-                                f"Extracting {installed_package}",
-                                end="",
-                                file=stdout_fd,
-                            )
                     installed.add(installed_package)
                     file_utils.link_or_copy(
                         str(dl_path), str(stage_packages_path / dl_path.name)
