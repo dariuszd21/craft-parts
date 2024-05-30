@@ -21,12 +21,10 @@ import contextlib
 import logging
 import os
 from pathlib import Path
-from typing import Any, List, Optional, Set, Tuple, Type, TYPE_CHECKING
+from typing import Any, List, Optional, Set, Tuple, Type
 
 from craft_parts import xattrs
-
-if TYPE_CHECKING:
-    from craft_parts.executor.step_handler import Stream
+from craft_parts.utils import process_utils
 
 logger = logging.getLogger(__name__)
 
@@ -93,8 +91,8 @@ class BaseRepository(abc.ABC):
         *,
         list_only: bool = False,
         refresh_package_cache: bool = True,
-        stdout: Optional["Stream"] = None,
-        stderr: Optional["Stream"] = None,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Install packages on the host system.
 
@@ -145,8 +143,8 @@ class BaseRepository(abc.ABC):
         base: str,
         arch: str,
         list_only: bool = False,
-        stdout: Optional["Stream"] = None,
-        stderr: Optional["Stream"] = None,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Fetch stage packages to stage_packages_path.
 
