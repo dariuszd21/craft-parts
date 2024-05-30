@@ -26,7 +26,7 @@ import tempfile
 import textwrap
 import time
 from pathlib import Path
-from typing import List, Optional, Set, TextIO, Union
+from typing import List, Optional, Set
 
 from craft_parts import errors, packages
 from craft_parts.infos import StepInfo
@@ -35,14 +35,13 @@ from craft_parts.plugins import Plugin
 from craft_parts.sources.local_source import SourceHandler
 from craft_parts.steps import Step
 from craft_parts.utils import file_utils
+from craft_parts.utils import process_utils
 
 from . import filesets
 from .filesets import Fileset
 from .migration import migrate_files
 
 logger = logging.getLogger(__name__)
-
-Stream = Optional[Union[TextIO, int]]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -73,8 +72,8 @@ class StepHandler:
         plugin: Plugin,
         source_handler: Optional[SourceHandler],
         env: str,
-        stdout: Stream = None,
-        stderr: Stream = None,
+        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
         partitions: Optional[Set[str]] = None,
     ) -> None:
         self._part = part

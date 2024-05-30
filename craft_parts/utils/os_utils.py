@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from craft_parts import errors
+from craft_parts.utils import process_utils
 
 logger = logging.getLogger(__name__)
 
@@ -327,8 +328,8 @@ def process_run(
     command: List[str],
     log_func: Callable[[str], None],
     *,
-    stdout: Optional["Stream"] = subprocess.PIPE,
-    stderr: Optional["Stream"] = subprocess.STDOUT,
+    stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+    stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     **kwargs: Any,
 ) -> None:
     """Run a command and handle its output."""
