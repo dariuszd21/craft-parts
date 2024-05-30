@@ -403,7 +403,7 @@ class Ubuntu(BaseRepository):
 
     @classmethod
     @functools.lru_cache(maxsize=1)
-    def refresh_packages_list(  # pyright: ignore[reportIncompatibleMethodOverride]
+    def refresh_packages_list(
         cls,
         *,
         stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
@@ -545,10 +545,7 @@ class Ubuntu(BaseRepository):
 
         if not list_only:
             if refresh_package_cache and install_required:
-                cls.refresh_packages_list(
-                    stdout=stdout,
-                    stderr=stderr,
-                )
+                cls.refresh_packages_list()
             if install_required:
                 cls._install_packages(
                     package_names,

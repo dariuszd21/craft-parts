@@ -26,7 +26,7 @@ import pytest
 from craft_parts import ProjectInfo, callbacks, packages
 from craft_parts.packages import deb, errors
 from craft_parts.packages.deb_package import DebPackage
-from craft_parts.utils.process_utils import DEFAULT_STDOUT, DEFAULT_STDERR
+from craft_parts.utils.process_utils import DEFAULT_STDERR, DEFAULT_STDOUT
 
 # pylint: disable=line-too-long
 # pylint: disable=missing-class-docstring
@@ -259,7 +259,9 @@ class TestPackages:
         assert fetched_packages == ["fake-package=1.0"]
 
     def test_fetch_stage_package_empty_list(self, tmpdir, fake_apt_cache):
-        fake_apt_cache.return_value.__enter__.return_value.fetch_archives.return_value = []
+        fake_apt_cache.return_value.__enter__.return_value.fetch_archives.return_value = (
+            []
+        )
 
         fetched_packages = deb.Ubuntu.fetch_stage_packages(
             cache_dir=tmpdir,
@@ -387,11 +389,15 @@ class TestBuildPackages:
                     "DEBIAN_PRIORITY": "critical",
                 },
                 stdin=subprocess.DEVNULL,
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
             ),
         ]
 
     def test_install_packages_empty_list(self, fake_apt_cache, fake_deb_run):
-        fake_apt_cache.return_value.__enter__.return_value.get_packages_marked_for_installation.return_value = []
+        fake_apt_cache.return_value.__enter__.return_value.get_packages_marked_for_installation.return_value = (
+            []
+        )
 
         build_packages = deb.Ubuntu.install_packages([])
 
