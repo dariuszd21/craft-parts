@@ -213,6 +213,12 @@ class DummyRepository(BaseRepository):
         *,
         list_only: bool = False,  # noqa: ARG003
         refresh_package_cache: bool = True,  # noqa: ARG003
+        stdout: Optional[  # noqa: ARG003
+            process_utils.Stream
+        ] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[  # noqa: ARG003
+            process_utils.Stream
+        ] = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Install packages on the host system."""
         return []
