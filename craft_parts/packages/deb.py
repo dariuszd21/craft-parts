@@ -511,7 +511,7 @@ class Ubuntu(BaseRepository):
         ]
 
         try:
-            process_run(apt_command + package_names, env=env, stdout=None)
+            process_run(apt_command + package_names, env=env)
         except subprocess.CalledProcessError as err:
             raise errors.PackagesDownloadError(packages=package_names) from err
 
@@ -684,7 +684,6 @@ class Ubuntu(BaseRepository):
             stderr=stderr,
         )
 
-        pkg_name = None
         with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
             stage_cache=stage_cache_dir, stage_cache_arch=arch
         ) as apt_cache:

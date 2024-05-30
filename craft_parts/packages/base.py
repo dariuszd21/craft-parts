@@ -66,7 +66,12 @@ class BaseRepository(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def refresh_packages_list(cls) -> None:
+    def refresh_packages_list(
+        cls,
+        *,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
+    ) -> None:
         """Refresh the list of packages available in the repository.
 
         If refreshing is not possible :class:`PackageListRefreshError`

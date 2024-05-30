@@ -26,6 +26,7 @@ import pytest
 from craft_parts import ProjectInfo, callbacks, packages
 from craft_parts.packages import deb, errors
 from craft_parts.packages.deb_package import DebPackage
+from craft_parts.utils.process_utils import DEFAULT_STDOUT, DEFAULT_STDERR
 
 # pylint: disable=line-too-long
 # pylint: disable=missing-class-docstring
@@ -132,7 +133,13 @@ class TestPackages:
             arch="amd64",
         )
 
-        assert fake_deb_run.mock_calls == [call(["apt-get", "update"])]
+        assert fake_deb_run.mock_calls == [
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            )
+        ]
         assert fake_apt_cache.mock_calls == [
             call(stage_cache=stage_cache_path, stage_cache_arch="amd64"),
             call().__enter__(),
@@ -160,7 +167,13 @@ class TestPackages:
             arch="amd64",
         )
 
-        assert fake_deb_run.mock_calls == [call(["apt-get", "update"])]
+        assert fake_deb_run.mock_calls == [
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            )
+        ]
         assert fetched_packages == ["fake-package=1.0"]
 
     def test_fetch_stage_package_with_deps(self, tmpdir, fake_apt_cache, fake_deb_run):
@@ -182,7 +195,13 @@ class TestPackages:
             arch="amd64",
         )
 
-        assert fake_deb_run.mock_calls == [call(["apt-get", "update"])]
+        assert fake_deb_run.mock_calls == [
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            )
+        ]
         assert sorted(fetched_packages) == sorted(
             ["fake-package=1.0", "fake-package-dep=2.0"]
         )
@@ -217,7 +236,13 @@ class TestPackages:
             packages_filters={"fake-package-dep", "other-fake-package"},
         )
 
-        assert fake_deb_run.mock_calls == [call(["apt-get", "update"])]
+        assert fake_deb_run.mock_calls == [
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            )
+        ]
         assert fake_apt_cache.mock_calls == [
             call(stage_cache=stage_cache_path, stage_cache_arch="amd64"),
             call().__enter__(),
@@ -234,9 +259,7 @@ class TestPackages:
         assert fetched_packages == ["fake-package=1.0"]
 
     def test_fetch_stage_package_empty_list(self, tmpdir, fake_apt_cache):
-        fake_apt_cache.return_value.__enter__.return_value.fetch_archives.return_value = (
-            []
-        )
+        fake_apt_cache.return_value.__enter__.return_value.fetch_archives.return_value = []
 
         fetched_packages = deb.Ubuntu.fetch_stage_packages(
             cache_dir=tmpdir,
@@ -263,7 +286,13 @@ class TestPackages:
             )
 
         assert raised.value.message == "foo"
-        assert fake_deb_run.mock_calls == [call(["apt-get", "update"])]
+        assert fake_deb_run.mock_calls == [
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            )
+        ]
 
     def test_unpack_stage_packages_dont_normalize(self, tmpdir, mocker):
         packages_path = Path(tmpdir, "pkg")
@@ -286,7 +315,11 @@ class TestPackages:
         deb.Ubuntu.download_packages(["package", "versioned-package=2.0"])
 
         assert fake_deb_run.mock_calls == [
-            call(["apt-get", "update"]),
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            ),
             call(
                 [
                     "apt-get",
@@ -331,7 +364,11 @@ class TestBuildPackages:
             "versioned-package=2.0",
         ]
         assert fake_deb_run.mock_calls == [
-            call(["apt-get", "update"]),
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            ),
             call(
                 [
                     "apt-get",
@@ -354,9 +391,7 @@ class TestBuildPackages:
         ]
 
     def test_install_packages_empty_list(self, fake_apt_cache, fake_deb_run):
-        fake_apt_cache.return_value.__enter__.return_value.get_packages_marked_for_installation.return_value = (
-            []
-        )
+        fake_apt_cache.return_value.__enter__.return_value.get_packages_marked_for_installation.return_value = []
 
         build_packages = deb.Ubuntu.install_packages([])
 
@@ -373,7 +408,11 @@ class TestBuildPackages:
 
         assert build_packages == ["package-installed=1.0"]
         assert fake_deb_run.mock_calls == [
-            call(["apt-get", "update"]),
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            ),
             call(
                 [
                     "apt-get",
@@ -693,7 +732,13 @@ class TestStagePackagesFilters:
 
         # pylint: disable=unnecessary-dunder-call
 
-        assert fake_deb_run.mock_calls == [call(["apt-get", "update"])]
+        assert fake_deb_run.mock_calls == [
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            )
+        ]
         assert fake_apt_cache.mock_calls == [
             call(stage_cache=stage_cache_path, stage_cache_arch="amd64"),
             call().__enter__(),
