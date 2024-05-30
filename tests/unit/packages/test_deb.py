@@ -435,6 +435,8 @@ class TestBuildPackages:
                     "DEBIAN_PRIORITY": "critical",
                 },
                 stdin=-3,
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
             ),
         ]
 
@@ -450,7 +452,11 @@ class TestBuildPackages:
 
         assert build_packages == ["package-installed=1.0"]
         assert fake_deb_run.mock_calls == [
-            call(["apt-get", "update"]),
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            ),
             call(
                 [
                     "apt-get",
@@ -467,6 +473,8 @@ class TestBuildPackages:
                     "DEBIAN_PRIORITY": "critical",
                 },
                 stdin=-3,
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
             ),
         ]
 
@@ -484,7 +492,11 @@ class TestBuildPackages:
 
         assert build_packages == ["new-version=3.0"]
         assert fake_deb_run.mock_calls == [
-            call(["apt-get", "update"]),
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            ),
             call(
                 [
                     "apt-get",
@@ -501,6 +513,8 @@ class TestBuildPackages:
                     "DEBIAN_PRIORITY": "critical",
                 },
                 stdin=subprocess.DEVNULL,
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
             ),
         ]
 
@@ -516,7 +530,11 @@ class TestBuildPackages:
 
         assert build_packages == ["resolved-virtual-package=1.0"]
         assert fake_deb_run.mock_calls == [
-            call(["apt-get", "update"]),
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            ),
             call(
                 [
                     "apt-get",
@@ -533,6 +551,8 @@ class TestBuildPackages:
                     "DEBIAN_PRIORITY": "critical",
                 },
                 stdin=subprocess.DEVNULL,
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
             ),
         ]
 
@@ -548,7 +568,11 @@ class TestBuildPackages:
         deb.Ubuntu.install_packages(["package"])
 
         assert fake_deb_run.mock_calls == [
-            call(["apt-get", "update"]),
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            ),
             call(
                 [
                     "apt-get",
@@ -565,6 +589,8 @@ class TestBuildPackages:
                     "DEBIAN_PRIORITY": "critical",
                 },
                 stdin=subprocess.DEVNULL,
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
             ),
         ]
 
@@ -592,7 +618,13 @@ class TestBuildPackages:
     def test_refresh_packages_list(self, fake_deb_run):
         deb.Ubuntu.refresh_packages_list()
 
-        assert fake_deb_run.mock_calls == [call(["apt-get", "update"])]
+        assert fake_deb_run.mock_calls == [
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            )
+        ]
 
     def test_refresh_packages_list_fails(self, fake_deb_run):
         fake_deb_run.side_effect = CalledProcessError(
@@ -602,7 +634,13 @@ class TestBuildPackages:
         with pytest.raises(errors.PackageListRefreshError):
             deb.Ubuntu.refresh_packages_list()
 
-        assert fake_deb_run.mock_calls == [call(["apt-get", "update"])]
+        assert fake_deb_run.mock_calls == [
+            call(
+                ["apt-get", "update"],
+                stdout=DEFAULT_STDOUT,
+                stderr=DEFAULT_STDERR,
+            )
+        ]
 
 
 @pytest.mark.parametrize(
