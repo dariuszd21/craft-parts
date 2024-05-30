@@ -28,11 +28,10 @@ from craft_parts.infos import PartInfo, ProjectInfo, StepInfo
 from craft_parts.overlays import LayerHash, OverlayManager
 from craft_parts.parts import Part, sort_parts
 from craft_parts.steps import Step
-from craft_parts.utils import os_utils
+from craft_parts.utils import os_utils, process_utils
 
 from .collisions import check_for_stage_collisions
 from .part_handler import PartHandler
-from .step_handler import Stream
 
 logger = logging.getLogger(__name__)
 
@@ -84,8 +83,8 @@ class Executor:
     def prologue(
         self,
         *,
-        stdout: Stream = None,
-        stderr: Stream = None,
+        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> None:
         """Prepare the execution environment.
 
@@ -128,8 +127,8 @@ class Executor:
         self,
         actions: Union[Action, List[Action]],
         *,
-        stdout: Stream = None,
-        stderr: Stream = None,
+        stdout: Optional[process_utils.Stream] = None,
+        stderr: Optional[process_utils.Stream] = None,
     ) -> None:
         """Execute the specified action or list of actions.
 
@@ -191,8 +190,8 @@ class Executor:
         self,
         action: Action,
         *,
-        stdout: Stream,
-        stderr: Stream,
+        stdout: process_utils.Stream,
+        stderr: process_utils.Stream,
     ) -> None:
         """Execute the given action for a part using the provided step information.
 
@@ -245,8 +244,8 @@ class Executor:
     def _install_build_packages(
         self,
         *,
-        stdout: Stream = None,
-        stderr: Stream = None,
+        stdout: process_utils.Stream,
+        stderr: process_utils.Stream,
     ) -> None:
         for part in self._part_list:
             self._create_part_handler(part)
@@ -317,8 +316,8 @@ class ExecutionContext:
         self,
         *,
         executor: Executor,
-        stdout: Optional[Stream] = None,
-        stderr: Optional[Stream] = None,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> None:
         self._executor = executor
         self._stdout = stdout
@@ -338,8 +337,8 @@ class ExecutionContext:
         self,
         actions: Union[Action, List[Action]],
         *,
-        stdout: Stream = None,
-        stderr: Stream = None,
+        stdout: Optional[process_utils.Stream] = None,
+        stderr: Optional[process_utils.Stream] = None,
     ) -> None:
         """Execute the specified action or list of actions.
 

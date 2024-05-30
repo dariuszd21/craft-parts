@@ -34,6 +34,7 @@ from craft_parts.parts import Part, part_by_name
 from craft_parts.state_manager import states
 from craft_parts.steps import Step
 from craft_parts.utils.partition_utils import validate_partition_names
+from craft_parts.utils import process_utils
 
 
 class LifecycleManager:
@@ -243,8 +244,8 @@ class LifecycleManager:
     def action_executor(
         self,
         *,
-        stdout: Optional["Stream"] = None,
-        stderr: Optional["Stream"] = None,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> executor.ExecutionContext:
         """Return a context manager for action execution."""
         return executor.ExecutionContext(

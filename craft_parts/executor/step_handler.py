@@ -34,8 +34,7 @@ from craft_parts.parts import Part
 from craft_parts.plugins import Plugin
 from craft_parts.sources.local_source import SourceHandler
 from craft_parts.steps import Step
-from craft_parts.utils import file_utils
-from craft_parts.utils import process_utils
+from craft_parts.utils import file_utils, process_utils
 
 from . import filesets
 from .filesets import Fileset
@@ -435,8 +434,8 @@ def _create_and_run_script(
     commands: List[str],
     script_path: Path,
     cwd: Path,
-    stdout: Stream,
-    stderr: Stream,
+    stdout: process_utils.Stream,
+    stderr: process_utils.Stream,
     build_environment_script_path: Optional[Path] = None,
 ) -> None:
     """Create a script with step-specific commands and execute it."""

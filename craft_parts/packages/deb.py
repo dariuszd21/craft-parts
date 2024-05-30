@@ -25,12 +25,11 @@ import re
 import subprocess
 import sys
 import tempfile
-from contextlib import contextmanager
 from io import StringIO
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Sequence, Set, TextIO, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 
-from craft_parts.utils import deb_utils, file_utils, os_utils
+from craft_parts.utils import deb_utils, file_utils, os_utils, process_utils
 
 from . import errors
 from .base import BaseRepository, get_pkg_name_parts, mark_origin_stage_package
@@ -407,8 +406,8 @@ class Ubuntu(BaseRepository):
     def refresh_packages_list(  # pyright: ignore[reportIncompatibleMethodOverride]
         cls,
         *,
-        stdout: Optional["Stream"] = None,
-        stderr: Optional["Stream"] = None,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> None:
         """Refresh the list of packages available in the repository."""
         # Return early when testing.
@@ -523,8 +522,8 @@ class Ubuntu(BaseRepository):
         *,
         list_only: bool = False,
         refresh_package_cache: bool = True,
-        stdout: Optional["Stream"] = None,
-        stderr: Optional["Stream"] = None,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Install packages on the host system."""
         if not package_names:
@@ -573,8 +572,8 @@ class Ubuntu(BaseRepository):
         cls,
         package_names: List[str],
         *,
-        stdout: Optional["Stream"] = None,
-        stderr: Optional["Stream"] = None,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> None:
         logger.debug("Installing packages: %s", " ".join(package_names))
         env = os.environ.copy()
@@ -620,8 +619,8 @@ class Ubuntu(BaseRepository):
         arch: str,
         list_only: bool = False,
         packages_filters: Optional[Set[str]] = None,
-        stdout: Optional["Stream"] = None,
-        stderr: Optional["Stream"] = None,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Fetch stage packages to stage_packages_path."""
         logger.debug("Requested stage-packages: %s", sorted(package_names))
@@ -658,8 +657,8 @@ class Ubuntu(BaseRepository):
         arch: str,
         list_only: bool = False,
         packages_filters: Optional[Set[str]] = None,
-        stdout: Optional["Stream"] = None,
-        stderr: Optional["Stream"] = None,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Fetch .deb stage packages to stage_packages_path."""
         filtered_names = _get_filtered_stage_package_names(
@@ -824,8 +823,8 @@ def get_cache_dirs(cache_dir: Path) -> Tuple[Path, Path]:
 def process_run(
     command: List[str],
     *,
-    stdout: Optional["Stream"] = subprocess.PIPE,
-    stderr: Optional["Stream"] = subprocess.STDOUT,
+    stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+    stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     **kwargs: Any,
 ) -> None:
     """Run a command and log its output."""
@@ -837,26 +836,3 @@ def process_run(
         stderr=stderr,
         **kwargs,
     )
-
-
-@contextmanager
-def attach_fd_streamhandler(stream: Optional["Stream"]) -> Callable:
-    """Attach temporary loghandler for given file descriptor."""
-    if stream is None:
-        yield
-        return
-
-    fd_stream_handler = None
-    try:
-        if isinstance(stream, TextIO):
-            fd_stream_handler = logging.StreamHandler(stream=stream)
-            logger.addHandler(fd_stream_handler)
-            yield
-        else:
-            with open(stream, mode="a") as wrapped_stream:
-                fd_stream_handler = logging.StreamHandler(stream=wrapped_stream)
-                logger.addHandler(fd_stream_handler)
-                yield
-    finally:
-        if fd_stream_handler is not None:
-            logger.removeHandler(fd_stream_handler)
