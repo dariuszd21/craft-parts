@@ -83,8 +83,8 @@ class Executor:
     def prologue(
         self,
         *,
-        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
-        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
+        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
+        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> None:
         """Prepare the execution environment.
 

@@ -189,11 +189,7 @@ class PartHandler:
         _remove(self._part.part_src_dir)
         self._make_dirs()
 
-        fetched_packages = self._fetch_stage_packages(
-            step_info=step_info,
-            stdout=stdout,
-            stderr=stderr,
-        )
+        fetched_packages = self._fetch_stage_packages(step_info=step_info)
         fetched_snaps = self._fetch_stage_snaps()
         self._fetch_overlay_packages()
 
@@ -908,8 +904,6 @@ class PartHandler:
         self,
         *,
         step_info: StepInfo,
-        stdout: process_utils.Stream,
-        stderr: process_utils.Stream,
     ) -> Optional[List[str]]:
         """Download stage packages to the part's package directory.
 
@@ -927,8 +921,6 @@ class PartHandler:
                 arch=step_info.host_arch,
                 base=step_info.base,
                 stage_packages_path=self._part.part_packages_dir,
-                stdout=stdout,
-                stderr=stderr,
             )
         except packages_errors.PackageNotFound as err:
             raise errors.StagePackageNotFound(

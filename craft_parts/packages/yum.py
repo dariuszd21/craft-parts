@@ -115,6 +115,7 @@ class YUMRepository(BaseRepository):
         """
         raise NotImplementedError("Functionality not yet provided by YUMRepository.")
 
+    # TODO (Dariusz): Update also this signature and calls
     @classmethod
     def install_packages(
         cls,
