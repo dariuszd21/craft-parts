@@ -403,12 +403,7 @@ class Ubuntu(BaseRepository):
 
     @classmethod
     @functools.lru_cache(maxsize=1)
-    def refresh_packages_list(
-        cls,
-        *,
-        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
-    ) -> None:
+    def refresh_packages_list(cls) -> None:
         """Refresh the list of packages available in the repository."""
         # Return early when testing.
         if os.getenv("CRAFT_PARTS_PACKAGE_REFRESH", "1") == "0":
@@ -417,11 +412,7 @@ class Ubuntu(BaseRepository):
         try:
             cmd = ["apt-get", "update"]
             logger.debug("Executing: %s", cmd)
-            process_run(
-                cmd,
-                stdout=stdout,
-                stderr=stderr,
-            )
+            process_run(cmd)
         except subprocess.CalledProcessError as call_error:
             raise errors.PackageListRefreshError(
                 "failed to run apt update"
@@ -616,8 +607,6 @@ class Ubuntu(BaseRepository):
         arch: str,
         list_only: bool = False,
         packages_filters: Optional[Set[str]] = None,
-        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Fetch stage packages to stage_packages_path."""
         logger.debug("Requested stage-packages: %s", sorted(package_names))
@@ -638,8 +627,6 @@ class Ubuntu(BaseRepository):
             arch=arch,
             list_only=list_only,
             packages_filters=packages_filters,
-            stdout=stdout,
-            stderr=stderr,
         )
 
     @classmethod
@@ -654,8 +641,6 @@ class Ubuntu(BaseRepository):
         arch: str,
         list_only: bool = False,
         packages_filters: Optional[Set[str]] = None,
-        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Fetch .deb stage packages to stage_packages_path."""
         filtered_names = _get_filtered_stage_package_names(
@@ -676,10 +661,7 @@ class Ubuntu(BaseRepository):
         installed: Set[str] = set()
 
         # Update the package cache
-        cls.refresh_packages_list(
-            stdout=stdout,
-            stderr=stderr,
-        )
+        cls.refresh_packages_list()
 
         with AptCache(  # pyright: ignore[reportPossiblyUnboundVariable]
             stage_cache=stage_cache_dir, stage_cache_arch=arch
