@@ -246,6 +246,7 @@ class AptCache(ContextDecorator):
                 continue
 
             try:
+                logger.info("Downloading package: %s", package)
                 dl_path = package.candidate.fetch_binary(
                     str(download_path), progress=self.progress
                 )
