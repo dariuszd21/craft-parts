@@ -71,8 +71,8 @@ class StepHandler:
         plugin: Plugin,
         source_handler: Optional[SourceHandler],
         env: str,
-        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
-        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
+        stdout: process_utils.Stream = None,
+        stderr: process_utils.Stream = None,
         partitions: Optional[Set[str]] = None,
     ) -> None:
         self._part = part
