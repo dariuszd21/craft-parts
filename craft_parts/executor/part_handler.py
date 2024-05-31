@@ -914,11 +914,7 @@ class PartHandler:
             overwrite=overwrite,
         )
 
-    def _fetch_stage_packages(
-        self,
-        *,
-        step_info: StepInfo,
-    ) -> Optional[List[str]]:
+    def _fetch_stage_packages(self, *, step_info: StepInfo) -> Optional[List[str]]:
         """Download stage packages to the part's package directory.
 
         :raises StagePackageNotFound: If a package is not available for download.

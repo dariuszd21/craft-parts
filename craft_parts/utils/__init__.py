@@ -16,23 +16,12 @@
 
 """Utilities and helpers."""
 
-from typing import Any, Dict, Optional
-from subprocess import PIPE, STDOUT
+from typing import Any, Dict
 
 
 def package_name() -> str:
     """Return the topmost package name."""
     return __name__.split(".", maxsplit=1)[0]
-
-
-def default_stdout() -> Optional[int]:
-    """Return default subprocess stdout."""
-    return PIPE
-
-
-def default_stderr() -> Optional[int]:
-    """Return default subprocess stdout."""
-    return STDOUT
 
 
 class Singleton(type):
