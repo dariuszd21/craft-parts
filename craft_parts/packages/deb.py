@@ -403,7 +403,9 @@ class Ubuntu(BaseRepository):
 
     @classmethod
     @functools.lru_cache(maxsize=1)
-    def refresh_packages_list(cls) -> None:
+    def refresh_packages_list(  # pyright: ignore[reportIncompatibleMethodOverride]
+        cls,
+    ) -> None:
         """Refresh the list of packages available in the repository."""
         # Return early when testing.
         if os.getenv("CRAFT_PARTS_PACKAGE_REFRESH", "1") == "0":
