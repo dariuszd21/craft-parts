@@ -89,6 +89,9 @@ class Executor:
         """Prepare the execution environment.
 
         This method is called before executing lifecycle actions.
+
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
         """
         self._install_build_packages(
             stdout=stdout,
@@ -134,6 +137,8 @@ class Executor:
 
         :param actions: An :class:`Action` object or list of :class:`Action`
            objects specifying steps to execute.
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
 
         :raises InvalidActionException: If the action parameters are invalid.
         """
@@ -196,6 +201,8 @@ class Executor:
         """Execute the given action for a part using the provided step information.
 
         :param action: The lifecycle action to run.
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
         """
         part = parts.part_by_name(action.part_name, self._part_list)
 
@@ -344,6 +351,8 @@ class ExecutionContext:
 
         :param actions: An :class:`Action` object or list of :class:`Action`
            objects specifying steps to execute.
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
 
         :raises InvalidActionException: If the action parameters are invalid.
         """

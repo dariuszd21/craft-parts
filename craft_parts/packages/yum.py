@@ -208,7 +208,11 @@ def process_run(
     stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
     stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
 ) -> None:
-    """Run a command and log its output."""
+    """Run a command and log its output.
+
+    :param stdout: Stream for subprocess output redirection.
+    :param stderr: Stream for subprocess error redirection.
+    """
     # Pass logger so messages can be logged as originating from this package.
     os_utils.process_run(
         command,

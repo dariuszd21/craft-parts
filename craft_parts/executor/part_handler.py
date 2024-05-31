@@ -128,6 +128,8 @@ class PartHandler:
         """Execute the given action for this part using a plugin.
 
         :param action: The action to execute.
+        :param stdout: Stream for command output redirection.
+        :param stderr: Stream for command error redirection.
         """
         step_info = StepInfo(self._part_info, action.step)
 
@@ -183,6 +185,8 @@ class PartHandler:
         """Execute the pull step for this part.
 
         :param step_info: Information about the step to execute.
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
 
         :return: The pull step state.
         """
@@ -221,6 +225,8 @@ class PartHandler:
         """Execute the overlay step for this part.
 
         :param step_info: Information about the step to execute.
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
 
         :return: The overlay step state.
         """
@@ -280,6 +286,8 @@ class PartHandler:
         """Execute the build step for this part.
 
         :param step_info: Information about the step to execute.
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
 
         :return: The build step state.
         """
@@ -360,6 +368,8 @@ class PartHandler:
         """Execute the stage step for this part.
 
         :param step_info: Information about the step to execute.
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
 
         :return: The stage step state.
         """
@@ -399,6 +409,8 @@ class PartHandler:
         """Execute the prime step for this part.
 
         :param step_info: Information about the step to execute.
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
 
         :return: The prime step state.
         """
@@ -447,6 +459,8 @@ class PartHandler:
         :param step_info: Information about the step to execute.
         :param scriptlet_name: The name of this step's scriptlet.
         :param work_dir: The path to run the scriptlet on.
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
 
         :return: If step is Stage or Prime, return a tuple of sets containing
             the step's file and directory artifacts.

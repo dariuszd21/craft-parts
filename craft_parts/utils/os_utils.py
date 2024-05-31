@@ -332,7 +332,11 @@ def process_run(
     stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     **kwargs: Any,
 ) -> None:
-    """Run a command and handle its output."""
+    """Run a command and handle its output.
+
+    :param stdout: Stream for subprocess output redirection.
+    :param stderr: Stream for subprocess error redirection.
+    """
     with subprocess.Popen(
         command,
         universal_newlines=True,

@@ -247,7 +247,11 @@ class LifecycleManager:
         stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
         stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> executor.ExecutionContext:
-        """Return a context manager for action execution."""
+        """Return a context manager for action execution.
+
+        :param stdout: Stream for subprocess output redirection.
+        :param stderr: Stream for subprocess error redirection.
+        """
         return executor.ExecutionContext(
             executor=self._executor, stdout=stdout, stderr=stderr
         )
