@@ -515,8 +515,8 @@ class Ubuntu(BaseRepository):
         *,
         list_only: bool = False,
         refresh_package_cache: bool = True,
-        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
+        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Install packages on the host system."""
         if not package_names:
@@ -562,8 +562,8 @@ class Ubuntu(BaseRepository):
         cls,
         package_names: List[str],
         *,
-        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
+        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> None:
         logger.debug("Installing packages: %s", " ".join(package_names))
         env = os.environ.copy()
@@ -803,8 +803,8 @@ def get_cache_dirs(cache_dir: Path) -> Tuple[Path, Path]:
 def process_run(
     command: List[str],
     *,
-    stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-    stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
+    stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+    stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     **kwargs: Any,
 ) -> None:
     """Run a command and log its output."""

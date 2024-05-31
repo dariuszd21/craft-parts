@@ -244,8 +244,8 @@ class LifecycleManager:
     def action_executor(
         self,
         *,
-        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
+        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> executor.ExecutionContext:
         """Return a context manager for action execution."""
         return executor.ExecutionContext(

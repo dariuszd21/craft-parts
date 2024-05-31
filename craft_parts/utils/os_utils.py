@@ -328,8 +328,8 @@ def process_run(
     command: List[str],
     log_func: Callable[[str], None],
     *,
-    stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-    stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
+    stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+    stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     **kwargs: Any,
 ) -> None:
     """Run a command and handle its output."""

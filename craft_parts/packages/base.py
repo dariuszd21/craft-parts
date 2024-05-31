@@ -91,8 +91,8 @@ class BaseRepository(abc.ABC):
         *,
         list_only: bool = False,
         refresh_package_cache: bool = True,
-        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
+        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> List[str]:
         """Install packages on the host system.
 

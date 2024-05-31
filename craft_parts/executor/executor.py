@@ -83,8 +83,8 @@ class Executor:
     def prologue(
         self,
         *,
-        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
+        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> None:
         """Prepare the execution environment.
 
@@ -127,8 +127,8 @@ class Executor:
         self,
         actions: Union[Action, List[Action]],
         *,
-        stdout: Optional[process_utils.Stream] = None,
-        stderr: Optional[process_utils.Stream] = None,
+        stdout: process_utils.Stream = None,
+        stderr: process_utils.Stream = None,
     ) -> None:
         """Execute the specified action or list of actions.
 
@@ -316,8 +316,8 @@ class ExecutionContext:
         self,
         *,
         executor: Executor,
-        stdout: Optional[process_utils.Stream] = process_utils.DEFAULT_STDOUT,
-        stderr: Optional[process_utils.Stream] = process_utils.DEFAULT_STDERR,
+        stdout: process_utils.Stream = process_utils.DEFAULT_STDOUT,
+        stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> None:
         self._executor = executor
         self._stdout = stdout
@@ -337,8 +337,8 @@ class ExecutionContext:
         self,
         actions: Union[Action, List[Action]],
         *,
-        stdout: Optional[process_utils.Stream] = None,
-        stderr: Optional[process_utils.Stream] = None,
+        stdout: process_utils.Stream = None,
+        stderr: process_utils.Stream = None,
     ) -> None:
         """Execute the specified action or list of actions.
 
