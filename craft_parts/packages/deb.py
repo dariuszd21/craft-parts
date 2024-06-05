@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 # to fail appropriately on use instead. This implementation is
 # independent of the underlying host OS.
 try:
-    from .apt_cache import AptCache
+    from .apt_cache import AptCache, LogInstallProgress, AptInstallRunner
 
     _APT_CACHE_AVAILABLE = True
 except ImportError as import_error:
@@ -493,20 +493,22 @@ class Ubuntu(BaseRepository):
             }
         )
 
-        apt_command = [
-            "apt-get",
-            "--no-install-recommends",
-            "-y",
-            "-oDpkg::Use-Pty=0",
-            "--allow-downgrades",
-            "--download-only",
-            "install",
-        ]
+        with LogInstallProgress() as installation_progress:
+            apt_command = [
+                "apt-get",
+                "--no-install-recommends",
+                "-y",
+                "-oDpkg::Use-Pty=0",
+                f"-oAPT::Status-Fd={installation_progress.write_stream.fileno()}",
+                "--allow-downgrades",
+                "--download-only",
+                "install",
+            ]
 
-        try:
-            process_run(apt_command + package_names, env=env)
-        except subprocess.CalledProcessError as err:
-            raise errors.PackagesDownloadError(packages=package_names) from err
+            try:
+                process_run(apt_command + package_names, env=env)
+            except subprocess.CalledProcessError as err:
+                raise errors.PackagesDownloadError(packages=package_names) from err
 
     @classmethod
     def install_packages(
@@ -566,37 +568,8 @@ class Ubuntu(BaseRepository):
         stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> None:
         logger.debug("Installing packages: %s", " ".join(package_names))
-        env = os.environ.copy()
-        env.update(
-            {
-                "DEBIAN_FRONTEND": "noninteractive",
-                "DEBCONF_NONINTERACTIVE_SEEN": "true",
-                "DEBIAN_PRIORITY": "critical",
-            }
-        )
-
-        apt_command = [
-            "apt-get",
-            "--no-install-recommends",
-            "-y",
-            "-oDpkg::Use-Pty=0",
-            "--allow-downgrades",
-            "install",
-        ]
-
-        # Set stdin to /dev/null to prevent SIGTTIN/SIGTTOU problems, see
-        # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=555632
-
-        try:
-            process_run(
-                apt_command + package_names,
-                env=env,
-                stdin=subprocess.DEVNULL,
-                stdout=stdout,
-                stderr=stderr,
-            )
-        except subprocess.CalledProcessError as err:
-            raise errors.BuildPackagesNotInstalled(packages=package_names) from err
+        with LogInstallProgress(logger_func=logger) as installation_progress:
+            installation_progress.run(AptInstallRunner(packages=package_names))
 
     @classmethod
     def fetch_stage_packages(

@@ -22,7 +22,10 @@ import re
 import shutil
 from contextlib import ContextDecorator
 from pathlib import Path
+from subprocess import Popen, DEVNULL
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
+
+from typing_extensions import Self
 
 try:
     import apt
@@ -76,6 +79,97 @@ class LogProgress(apt.progress.base.AcquireProgress):
             line += f" [{apt_pkg.size_to_str(item.owner.filesize)}B]"
 
         logger.debug(line)
+
+
+class LogInstallProgress(apt.progress.base.InstallProgress):
+    """Class for tracking apt installation progress."""
+
+    def __init__(self, logger_func=logger) -> None:
+        super().__init__()
+        self._logger_func = logger_func
+
+    def __enter__(self) -> Self:
+        return super().__enter__()
+
+    def __exit__(self, type, value, traceback):
+        # type: (object, object, object) -> None
+        super().__exit__(type, value, traceback)
+
+    def error(self, pkg, errormsg):
+        # type: (str, str) -> None
+        """(Abstract) Called when a error is detected during the install."""
+        super().error(pkg, errormsg)
+        self._logger_func.info("Error occurred: %s", errormsg)
+
+    def conffile(self, current, new):
+        # type: (str, str) -> None
+        super().conffile(current, new)
+        self._logger_func.info("Conffile called current: %s new: %s", current, new)
+
+    def status_change(self, pkg, percent, status):
+        # type: (str, float, str) -> None
+        """(Abstract) Called when the APT status changed."""
+        super().status_change(pkg, percent, status)
+        self._logger_func.info("Status changed %s %s %s", pkg, percent, status)
+
+    def dpkg_status_change(self, pkg, status):
+        # type: (str, str) -> None
+        """(Abstract) Called when the dpkg status changed."""
+        super().dpkg_status_change(pkg, status)
+        self._logger_func.info("DPKG status change: %s, (package %s)", status, pkg)
+
+    def processing(self, pkg, stage):
+        # type: (str, str) -> None
+        """(Abstract) Sent just before a processing stage starts.
+
+        The parameter 'stage' is one of "upgrade", "install"
+        (both sent before unpacking), "configure", "trigproc", "remove",
+        "purge". This method is used for dpkg only.
+        """
+        super().processing(pkg, stage)
+        self._logger_func.info("Processing package: %s (stage %s)", pkg, stage)
+
+
+class AptInstallRunner:
+    """Helper class to wrap apt-install scripts."""
+
+    def __init__(self, *, packages: list[str]) -> None:
+        self._packages = packages
+
+    def do_install(self, fd: int) -> int:
+        logger.debug("Installing packages: %s", " ".join(self._packages))
+        env = os.environ.copy()
+        env.update(
+            {
+                "DEBIAN_FRONTEND": "noninteractive",
+                "DEBCONF_NONINTERACTIVE_SEEN": "true",
+                "DEBIAN_PRIORITY": "critical",
+            }
+        )
+
+        logger.info("Redirecting to FD: %d", fd)
+
+        apt_command = [
+            "apt-get",
+            "--no-install-recommends",
+            "-y",
+            "-oDpkg::Use-Pty=0",
+            # f"-oAPT::Status-Fd={fd}",
+            "--allow-downgrades",
+            "install",
+        ]
+        apt_command.extend(self._packages)
+
+        # Set stdin to /dev/null to prevent SIGTTIN/SIGTTOU problems, see
+        # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=555632
+        with Popen(
+            apt_command,
+            text=True,
+            stdin=DEVNULL,
+            stdout=fd,
+            stderr=fd,
+        ) as proc:
+            return proc.pid
 
 
 class AptCache(ContextDecorator):
