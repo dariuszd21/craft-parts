@@ -23,6 +23,56 @@ import apt.package
 import pytest
 from craft_parts.packages import apt_cache, errors
 from craft_parts.packages.apt_cache import AptCache
+from typing_extensions import Self
+
+
+class LogInstallProgress(apt.progress.base.InstallProgress):
+    """Class for tracking apt installation progress."""
+
+    def __init__(self, logger_func=logger) -> None:
+        super().__init__()
+        self._logger_func = logger_func
+
+    def __enter__(self) -> Self:
+        return super().__enter__()
+
+    def __exit__(self, type, value, traceback):
+        # type: (object, object, object) -> None
+        super().__exit__(type, value, traceback)
+
+    def error(self, pkg, errormsg):
+        # type: (str, str) -> None
+        """(Abstract) Called when a error is detected during the install."""
+        super().error(pkg, errormsg)
+        self._logger_func.info("Error occurred: %s", errormsg)
+
+    def conffile(self, current, new):
+        # type: (str, str) -> None
+        super().conffile(current, new)
+        self._logger_func.info("Conffile called current: %s new: %s", current, new)
+
+    def status_change(self, pkg, percent, status):
+        # type: (str, float, str) -> None
+        """(Abstract) Called when the APT status changed."""
+        super().status_change(pkg, percent, status)
+        self._logger_func.info("Status changed %s %s %s", pkg, percent, status)
+
+    def dpkg_status_change(self, pkg, status):
+        # type: (str, str) -> None
+        """(Abstract) Called when the dpkg status changed."""
+        super().dpkg_status_change(pkg, status)
+        self._logger_func.info("DPKG status change: %s, (package %s)", status, pkg)
+
+    def processing(self, pkg, stage):
+        # type: (str, str) -> None
+        """(Abstract) Sent just before a processing stage starts.
+
+        The parameter 'stage' is one of "upgrade", "install"
+        (both sent before unpacking), "configure", "trigproc", "remove",
+        "purge". This method is used for dpkg only.
+        """
+        super().processing(pkg, stage)
+        self._logger_func.info("Processing package: %s (stage %s)", pkg, stage)
 
 
 class TestAptStageCache:

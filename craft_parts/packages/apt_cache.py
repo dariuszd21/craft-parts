@@ -51,6 +51,10 @@ logger = logging.getLogger(__name__)
 _HASHSUM_MISMATCH_PATTERN = re.compile(r"(E:Failed to fetch.+Hash Sum mismatch)+")
 
 
+class LogOpProgress(apt.progress.base.OpProgress):
+    """Class to silent streaming output to stdout."""
+
+
 class LogProgress(apt.progress.base.AcquireProgress):
     """Internal Base class for text progress classes."""
 
@@ -153,8 +157,8 @@ class AptInstallRunner:
             "apt-get",
             "--no-install-recommends",
             "-y",
+            f"-oAPT::Status-Fd={fd}",
             "-oDpkg::Use-Pty=0",
-            # f"-oAPT::Status-Fd={fd}",
             "--allow-downgrades",
             "install",
         ]
@@ -162,14 +166,16 @@ class AptInstallRunner:
 
         # Set stdin to /dev/null to prevent SIGTTIN/SIGTTOU problems, see
         # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=555632
-        with Popen(
+        proc = Popen(
             apt_command,
             text=True,
             stdin=DEVNULL,
-            stdout=fd,
-            stderr=fd,
-        ) as proc:
-            return proc.pid
+            stdout=None,
+            stderr=None,
+            close_fds=False,
+            env=env,
+        )
+        return proc.pid
 
 
 class AptCache(ContextDecorator):
@@ -353,6 +359,23 @@ class AptCache(ContextDecorator):
             downloaded.append((package.name, package.candidate.version, Path(dl_path)))
         return downloaded
 
+    def install_packages(self) -> None:
+        """Install all marked packages."""
+
+        with LogInstallProgress() as install_progress, self.cache.actiongroup():
+            env = os.environ.copy()
+            os.environ.update(
+                {
+                    "DEBIAN_FRONTEND": "noninteractive",
+                    "DEBCONF_NONINTERACTIVE_SEEN": "true",
+                    "DEBIAN_PRIORITY": "critical",
+                }
+            )
+            self.cache.commit(
+                fetch_progress=self.progress,
+                install_progress=install_progress,
+            )
+
     def get_installed_packages(self) -> Dict[str, str]:
         """Obtain a list of all packages and versions installed on the system.
 
@@ -388,38 +411,39 @@ class AptCache(ContextDecorator):
 
         :param package_names: The set of package names to be marked.
         """
-        for _name in package_names:
-            name = _name[:-4] if _name.endswith(":any") else _name
+        with self.cache.actiongroup():
+            for _name in package_names:
+                name = _name[:-4] if _name.endswith(":any") else _name
 
-            if self.cache.is_virtual_package(name):
-                name = self.cache.get_providing_packages(name)[0].name
+                if self.cache.is_virtual_package(name):
+                    name = self.cache.get_providing_packages(name)[0].name
 
-            logger.debug("Marking %s (and its dependencies) to be fetched", name)
+                logger.debug("Marking %s (and its dependencies) to be fetched", name)
 
-            name_arch, version = get_pkg_name_parts(name)
-            if name_arch not in self.cache:
-                raise errors.PackageNotFound(name_arch)
+                name_arch, version = get_pkg_name_parts(name)
+                if name_arch not in self.cache:
+                    raise errors.PackageNotFound(name_arch)
 
-            package = self.cache[name_arch]
-            if version is not None:
-                _set_pkg_version(package, version)
+                package = self.cache[name_arch]
+                if version is not None:
+                    _set_pkg_version(package, version)
 
-            logger.debug("package: %s", package)
+                logger.debug("package: %s", package)
 
-            # Disable automatic resolving of broken packages here
-            # because if that fails it raises a SystemError and the
-            # API doesn't expose enough information about the problem.
-            # Instead we let apt-get show a verbose error message later.
-            # Also, make sure this package is marked as auto-installed,
-            # which will propagate to its dependencies.
-            package.mark_install(auto_fix=False, from_user=False)
+                # Disable automatic resolving of broken packages here
+                # because if that fails it raises a SystemError and the
+                # API doesn't expose enough information about the problem.
+                # Instead we let apt-get show a verbose error message later.
+                # Also, make sure this package is marked as auto-installed,
+                # which will propagate to its dependencies.
+                package.mark_install(auto_fix=False, from_user=False)
 
-            # Now mark this package as NOT automatically installed, which
-            # will leave its dependencies marked as auto-installed, which
-            # allows us to clean them up if necessary.
-            package.mark_auto(auto=False)
+                # Now mark this package as NOT automatically installed, which
+                # will leave its dependencies marked as auto-installed, which
+                # allows us to clean them up if necessary.
+                package.mark_auto(auto=False)
 
-            _verify_marked_install(package)
+                _verify_marked_install(package)
 
     def unmark_packages(self, unmark_names: Set[str]) -> None:
         """Unmark packages and dependencies that are no longer required.

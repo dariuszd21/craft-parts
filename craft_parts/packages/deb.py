@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 # to fail appropriately on use instead. This implementation is
 # independent of the underlying host OS.
 try:
-    from .apt_cache import AptCache, LogInstallProgress, AptInstallRunner
+    from .apt_cache import AptCache, AptInstallRunner, LogInstallProgress
 
     _APT_CACHE_AVAILABLE = True
 except ImportError as import_error:
@@ -568,8 +568,12 @@ class Ubuntu(BaseRepository):
         stderr: process_utils.Stream = process_utils.DEFAULT_STDERR,
     ) -> None:
         logger.debug("Installing packages: %s", " ".join(package_names))
-        with LogInstallProgress(logger_func=logger) as installation_progress:
-            installation_progress.run(AptInstallRunner(packages=package_names))
+
+        # with LogInstallProgress() as install_progress:
+        #     install_progress.run(AptInstallRunner(packages=package_names))
+        with AptCache() as apt_cache:  # pyright: ignore[reportPossiblyUnboundVariable]
+            apt_cache.mark_packages(set(package_names))
+            apt_cache.install_packages()
 
     @classmethod
     def fetch_stage_packages(
