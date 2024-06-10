@@ -33,6 +33,7 @@ try:
     import apt.package
     import apt.progress
     import apt.progress.base
+    import apt.progress.text
     import apt_pkg
 except ImportError as e:
     raise ImportError(
@@ -82,7 +83,7 @@ class LogProgress(apt.progress.base.AcquireProgress):
         if item.owner.filesize:
             line += f" [{apt_pkg.size_to_str(item.owner.filesize)}B]"
 
-        logger.debug(line)
+        logger.info(line)
 
 
 class LogInstallProgress(apt.progress.base.InstallProgress):
@@ -103,24 +104,30 @@ class LogInstallProgress(apt.progress.base.InstallProgress):
         # type: (str, str) -> None
         """(Abstract) Called when a error is detected during the install."""
         super().error(pkg, errormsg)
-        self._logger_func.info("Error occurred: %s", errormsg)
+        self._logger_func.info("########## Error occurred: %s", errormsg)
 
     def conffile(self, current, new):
         # type: (str, str) -> None
         super().conffile(current, new)
-        self._logger_func.info("Conffile called current: %s new: %s", current, new)
+        self._logger_func.info(
+            "########## Conffile called current: %s new: %s", current, new
+        )
 
     def status_change(self, pkg, percent, status):
         # type: (str, float, str) -> None
         """(Abstract) Called when the APT status changed."""
         super().status_change(pkg, percent, status)
-        self._logger_func.info("Status changed %s %s %s", pkg, percent, status)
+        self._logger_func.info(
+            "########## Status changed %s %s %s", pkg, percent, status
+        )
 
     def dpkg_status_change(self, pkg, status):
         # type: (str, str) -> None
         """(Abstract) Called when the dpkg status changed."""
         super().dpkg_status_change(pkg, status)
-        self._logger_func.info("DPKG status change: %s, (package %s)", status, pkg)
+        self._logger_func.info(
+            "########## DPKG status change: %s, (package %s)", status, pkg
+        )
 
     def processing(self, pkg, stage):
         # type: (str, str) -> None
@@ -131,7 +138,9 @@ class LogInstallProgress(apt.progress.base.InstallProgress):
         "purge". This method is used for dpkg only.
         """
         super().processing(pkg, stage)
-        self._logger_func.info("Processing package: %s (stage %s)", pkg, stage)
+        self._logger_func.info(
+            "########## Processing package: %s (stage %s)", pkg, stage
+        )
 
 
 class AptInstallRunner:
@@ -200,7 +209,14 @@ class AptCache(ContextDecorator):
         else:
             # Setting rootdir="/" is needed otherwise the previously set rootdir will
             # be used and _deb.get_installed_packages() will return an empty list.
-            self.cache = apt.cache.Cache(rootdir="/")
+            import io
+
+            tx_buff = io.StringIO()
+
+            self.cache = apt.cache.Cache(
+                progress=apt.progress.text.OpProgress(outfile=tx_buff),
+                rootdir="/",
+            )
         return self
 
     # pylint: enable=attribute-defined-outside-init
@@ -216,6 +232,9 @@ class AptCache(ContextDecorator):
 
         # Ensure repos are provided by trusted third-parties.
         apt_pkg.config.set("Acquire::AllowInsecureRepositories", "False")
+
+        # Ensure that DPKG does not issue any output
+        apt_pkg.config.set("Dpkg::Use-Pty", "0")
 
         # Methods and solvers dir for when in the SNAP.
         snap_dir = os.getenv("SNAP")
@@ -364,6 +383,10 @@ class AptCache(ContextDecorator):
 
         with LogInstallProgress() as install_progress, self.cache.actiongroup():
             env = os.environ.copy()
+            apt_pkg.config.set("Dpkg::Use-Pty", "0")
+            apt_pkg.config.set("Dpkg::Progress-Fancy", "0")
+            apt_pkg.config.set("APT::Color", "0")
+            apt_pkg.config.set("APT::quiet", "2")
             os.environ.update(
                 {
                     "DEBIAN_FRONTEND": "noninteractive",

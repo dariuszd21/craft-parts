@@ -492,6 +492,7 @@ class Ubuntu(BaseRepository):
                 "DEBIAN_PRIORITY": "critical",
             }
         )
+        assert False, "Is it ever called?"
 
         with LogInstallProgress() as installation_progress:
             apt_command = [
