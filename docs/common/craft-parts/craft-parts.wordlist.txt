@@ -269,6 +269,7 @@ SourceModel
 SourceNotFound
 SourceUpdateUnsupported
 SSL
+StageContents
 StageFilesConflict
 StagePackageNotFound
 StageState
